@@ -5,6 +5,8 @@
     "fetch": "^1.1.0",
     "limdu": "^1.0.0",
     "node-fetch": "^3.3.2",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "prompt-sync": "^4.2.0",
+    "sqlite3": "^5.1.7"
   }
 }
