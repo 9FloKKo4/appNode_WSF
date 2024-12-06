@@ -1,8 +1,10 @@
 {
   "dependencies": {
-    "axios": "^1.7.8",
+    "axios": "^1.7.9",
     "dotenv": "^16.4.5",
+    "fetch": "^1.1.0",
     "limdu": "^1.0.0",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "passport-local": "^1.0.0"
   }
 }
