@@ -9,11 +9,13 @@ const rl = readline.createInterface({
 function AddVinyl() {
     rl.question('Nom du vinyl : ', (nom) => {
         rl.question('Prix : ', (prix) => {
-            rl.question('Taille : ', (type) => {
-                rl.question('Quantité : ', (stock) => {
-                    add.AddVinyl(nom, prix, type, stock);
-                    console.log('vinyl ajouté avec succès !');
-                    rl.close();
+            rl.question('Quantité : ', (stock) => {
+                rl.question('genre : ', (genre) => {
+                    rl.question('type : ', (type) => {
+                        add.AddVinyl(nom, prix, stock, genre, type,);
+                        console.log('vinyl ajouté avec succès !');
+                        rl.close();
+                    });
                 });
             });
         });
