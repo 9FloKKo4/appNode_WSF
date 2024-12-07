@@ -1,10 +1,8 @@
 const readline = require('readline');
 const axios = require('axios');
 
-// Configuration du jeton Discogs (remplace-le par un jeton valide si nécessaire)
 const DISCOGS_TOKEN = 'cwGsRhpeEbVeQeguRAmKcAwyMEDLeqWDLjCXCNlk';
 
-// Fonction pour rechercher un album
 async function searchAlbum(albumName) {
   const config = {
     method: 'get',
@@ -14,7 +12,8 @@ async function searchAlbum(albumName) {
 
   try {
     const response = await axios.request(config);
-    const results = response.data.results;
+    const results = response.data.results.slice(0, 5); 
+
 
     if (results.length === 0) {
       console.log(`Aucun résultat trouvé pour l'album "${albumName}".`);
@@ -22,7 +21,7 @@ async function searchAlbum(albumName) {
       console.log(`Résultats pour "${albumName}":`);
       results.forEach((result, index) => {
         console.log(`\n${index + 1}. Titre : ${result.title}`);
-        console.log(`   Artiste : ${result.artist}`);
+        console.log(`   contributor : ${result.contributor}`);
         console.log(`   Année : ${result.year || 'Non spécifiée'}`);
         console.log(`   Genre : ${result.genre ? result.genre.join(', ') : 'Non spécifié'}`);
       });

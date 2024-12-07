@@ -3,7 +3,6 @@ const sqlite3 = require('sqlite3');
 const crypto = require('crypto');
 const db = new sqlite3.Database('Vinyl.db');
 
-// Interface pour les entrées utilisateur
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -111,10 +110,10 @@ function mainMenu() {
     });
 }
 
-// Initialisation de la base de données
 db.run(
     `CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        mail TEXT NOT NULL UNIQUE,
         username TEXT NOT NULL UNIQUE,
         salt TEXT NOT NULL,
         hashed_password TEXT NOT NULL

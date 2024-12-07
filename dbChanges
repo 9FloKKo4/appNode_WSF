@@ -1,0 +1,15 @@
+const sqlite3 = require('sqlite3');
+const db = new sqlite3.Database('Vinyl.db');
+
+
+db.run(
+    `DROP TABLE users`,
+    (err) => {
+        if (err) {
+            console.error("Erreur lors de la création de la table :", err.message);
+        } else {
+            console.log("Base de données prête.");
+            mainMenu();
+        }
+    }
+);
