@@ -3,6 +3,39 @@ const readline = require('readline');
 const limdu = require("limdu");
 const prompt = require("prompt-sync")();
 const crypto = require('crypto'); 
+const axios = require('axios');
+
+const DISCOGS_TOKEN = 'cwGsRhpeEbVeQeguRAmKcAwyMEDLeqWDLjCXCNlk';
+
+async function searchAlbum(albumName) {
+  const config = {
+    method: 'get',
+    maxBodyLength: Infinity,
+    url: `https://api.discogs.com/database/search?q=${encodeURIComponent(albumName)}&type=release&token=${DISCOGS_TOKEN}`,
+  };
+
+
+  try {
+    const response = await axios.request(config);
+    const results = response.data.results.slice(0, 1); 
+
+
+    if (results.length === 0) {
+      console.log(`Aucun résultat trouvé pour l'album "${albumName}".`);
+    } else {
+      console.log(`Résultats pour "${albumName}":`);
+      results.forEach((result, index) => {
+        console.log(`\n${index + 1}. Titre : ${result.title}`);
+        console.log(`   contributor : ${result.contributor}`);
+        console.log(`   Année : ${result.year || 'Non spécifiée'}`);
+        console.log(`   Genre : ${result.genre ? result.genre.join(', ') : 'Non spécifié'}`);
+      });
+    }
+  } catch (error) {
+    console.error('Erreur lors de la requête API :', error.message);
+  }
+
+}
 
 // Connexion à la base de données
 const db = new sqlite3.Database('Vinyl.db', (err) => {
@@ -128,7 +161,7 @@ async function gestionUtilisateur() {
                 afficherMenuUtilisateur(userId);
             } else {
                 console.log('Mot de passe incorrect. Veuillez réessayer.');
-                gestionUtilisateur(); // Relancer la connexion
+                gestionUtilisateur(); 
             }
         } else {
             console.log('Identifiant introuvable.');
@@ -144,7 +177,7 @@ async function gestionUtilisateur() {
                     if (!emailRegex.test(email)) {
                         console.log('Adresse email invalide. Assurez-vous qu\'elle contient un "@" et se termine par ".com".');
                     } else {
-                        break; // Email valide
+                        break; 
                     }
                 }
 
@@ -152,11 +185,11 @@ async function gestionUtilisateur() {
                 while (true) {
                     password = prompt('Entrez votre mot de passe : ').trim();
                     // Validation du mot de passe
-                    const passwordRegex = /^(?=.*[0-9]).{9,}$/; // Au moins 9 caractères et au moins un chiffre
+                    const passwordRegex = /^(?=.*[0-9]).{9,}$/; 
                     if (!passwordRegex.test(password)) {
                         console.log('Mot de passe invalide. Il doit contenir au moins 9 caractères et inclure au moins un chiffre.');
                     } else {
-                        break; // Mot de passe valide
+                        break; 
                     }
                 }
 
@@ -167,11 +200,11 @@ async function gestionUtilisateur() {
                     return;
                 }
 
-                // Générer un salt unique pour l'utilisateur
+                // Créer salt
                 const salt = crypto.randomBytes(16).toString('hex');
                 const hashedPassword = hashPassword(password, salt);
 
-                // Insérer un nouvel utilisateur dans la base de données
+                // nouveau user
                 db.run(
                     'INSERT INTO users (mail, username, salt, hashed_password) VALUES (?, ?, ?, ?)',
                     [email, username, salt, hashedPassword],
@@ -196,8 +229,9 @@ async function gestionUtilisateur() {
 function afficherMenuUtilisateur(userId) {
     console.log('\nOptions disponibles :');
     console.log('1. Explorer les genres');
-    console.log('2. Voir l\'historique de mes achats');
-    console.log('3. Quitter');
+    console.log('2. Rechercher des informations sur un artiste');
+    console.log('3. Voir l\'historique de mes achats');
+    console.log('4. Quitter');
 
     rl.question('Choisissez une option : ', (choix) => {
         switch (choix.trim()) {
@@ -205,9 +239,12 @@ function afficherMenuUtilisateur(userId) {
                 afficherGenres(userId);
                 break;
             case '2':
-                afficherHistorique(userId);
+                rechercherArtiste(userId);
                 break;
             case '3':
+                afficherHistorique(userId);
+                break;
+            case '4':
                 console.log('À bientôt !');
                 fermerConnexion();
                 break;
@@ -215,6 +252,51 @@ function afficherMenuUtilisateur(userId) {
                 console.log('Option invalide. Réessayez.');
                 afficherMenuUtilisateur(userId);
                 break;
+        }
+    });
+}
+
+async function rechercherArtiste() {
+    const artistName = prompt('Entrez le nom de l\'artiste que vous souhaitez rechercher : ').trim();
+
+    if (!artistName) {
+        console.log('Le nom de l\'artiste ne peut pas être vide.');
+        return rechercherArtiste(); 
+    }
+
+    console.log(`Recherche d'informations sur l'artiste "${artistName}"...`);
+    
+    const config = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `https://api.discogs.com/database/search?q=${encodeURIComponent(artistName)}&type=artist&token=${DISCOGS_TOKEN}`,
+    };
+
+    try {
+        const response = await axios.request(config);
+        const results = response.data.results.slice(0,5);
+
+        if (results.length === 0) {
+            console.log(`Aucun résultat trouvé pour l'artiste "${artistName}".`);
+        } else {
+            console.log(`Résultats pour "${artistName}" :`);
+            results.forEach((result, index) => {
+                console.log(`\n${index + 1}. Nom : ${result.title}`);
+                console.log(`   Type : ${result.type}`);
+                console.log(`   Pays : ${result.country || 'Non spécifié'}`);
+                console.log(`   Année d'activité : ${result.year || 'Non spécifiée'}`);
+                console.log(`   URL Discogs : ${result.uri ? `https://www.discogs.com${result.uri}` : 'Non disponible'}`);
+            });
+        }
+    } catch (error) {
+        console.error('Erreur lors de la requête API :', error.message);
+    }
+
+    rl.question('Souhaitez-vous effectuer une autre recherche ? (oui/non) : ', (reponse) => {
+        if (reponse.trim().toLowerCase() === 'oui') {
+            rechercherArtiste();
+        } else {
+            afficherMenuUtilisateur();
         }
     });
 }
@@ -302,6 +384,7 @@ function afficherDisquesParGenre(genre, userId) {
         });
     });
 }
+
 
 
 function confirmerCommande(produit, genre, userId) {
